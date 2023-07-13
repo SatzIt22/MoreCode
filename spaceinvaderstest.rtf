@@ -1,0 +1,181 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 let tank;\
+let aliens = [];\
+let projectiles = [];\
+let score = 0;\
+let gameOver = false;\
+\
+function setup() \{\
+  createCanvas(600, 400);\
+  tank = new Tank();\
+  \
+  for (let i = 0; i < 10; i++) \{\
+    aliens.push(new Alien(i * 50 + 50, 50));\
+  \}\
+\}\
+\
+function draw() \{\
+  background(0);\
+  \
+  if (!gameOver) \{\
+    tank.update();\
+    \
+    for (let i = aliens.length - 1; i >= 0; i--) \{\
+      aliens[i].update();\
+      if (aliens[i].hits(tank)) \{\
+        gameOver = true;\
+      \}\
+      if (aliens[i].reachedBottom()) \{\
+        gameOver = true;\
+      \}\
+      if (aliens[i].toDelete) \{\
+        aliens.splice(i, 1);\
+        score++;\
+      \}\
+    \}\
+    \
+    for (let i = projectiles.length - 1; i >= 0; i--) \{\
+      projectiles[i].update();\
+      if (projectiles[i].toDelete) \{\
+        projectiles.splice(i, 1);\
+      \}\
+    \}\
+    \
+    if (aliens.length === 0) \{\
+      gameOver = true;\
+    \}\
+  \}\
+  \
+  tank.show();\
+  \
+  for (let alien of aliens) \{\
+    alien.show();\
+  \}\
+  \
+  for (let projectile of projectiles) \{\
+    projectile.show();\
+  \}\
+  \
+  textSize(24);\
+  fill(255);\
+  text("Score: " + score, 10, 30);\
+  \
+  if (gameOver) \{\
+    textSize(48);\
+    text("Game Over", width/2 - 120, height/2);\
+  \}\
+\}\
+\
+function keyPressed() \{\
+  if (keyCode === LEFT_ARROW) \{\
+    tank.setDirection(-1);\
+  \} else if (keyCode === RIGHT_ARROW) \{\
+    tank.setDirection(1);\
+  \} else if (key === ' ') \{\
+    projectiles.push(new Projectile(tank.x, height - 30));\
+  \}\
+\}\
+\
+function keyReleased() \{\
+  if (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) \{\
+    tank.setDirection(0);\
+  \}\
+\}\
+\
+class Tank \{\
+  constructor() \{\
+    this.x = width/2;\
+    this.direction = 0;\
+    this.speed = 5;\
+  \}\
+  \
+  setDirection(dir) \{\
+    this.direction = dir;\
+  \}\
+  \
+  update() \{\
+    this.x += this.direction * this.speed;\
+    this.x = constrain(this.x, 0, width);\
+  \}\
+  \
+  show() \{\
+    fill(0, 255, 0);\
+    rectMode(CENTER);\
+    rect(this.x, height - 20, 60, 20);\
+  \}\
+\}\
+\
+class Alien \{\
+  constructor(x, y) \{\
+    this.x = x;\
+    this.y = y;\
+    this.r = 20;\
+    this.xdir = 1;\
+    this.toDelete = false;\
+  \}\
+  \
+  update() \{\
+    this.x += this.xdir;\
+    \
+    if (this.x > width - this.r || this.x < this.r) \{\
+      this.xdir *= -1;\
+      this.y += this.r;\
+    \}\
+    \
+    for (let projectile of projectiles) \{\
+      if (projectile.hits(this)) \{\
+        this.toDelete = true;\
+        projectile.toDelete = true;\
+      \}\
+    \}\
+  \}\
+  \
+  show() \{\
+    fill(255, 0, 0);\
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);\
+  \}\
+  \
+  hits(target) \{\
+    let d = dist(this.x, this.y, target.x, target.y);\
+    return d < this.r + target.r;\
+  \}\
+  \
+  reachedBottom() \{\
+    return this.y >= height - 40;\
+  \}\
+\}\
+\
+class Projectile \{\
+  constructor(x, y) \{\
+    this.x = x;\
+    this.y = y;\
+    this.r = 8;\
+    this.speed = 5;\
+    this.toDelete = false;\
+  \}\
+  \
+  update() \{\
+    this.y -= this.speed;\
+    \
+    if (this.y < 0) \{\
+      this.toDelete = true;\
+    \}\
+  \}\
+  \
+  show() \{\
+    fill(255);\
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);\
+  \}\
+  \
+  hits(target) \{\
+    let d = dist(this.x, this.y, target.x, target.y);\
+    return d < this.r + target.r;\
+  \}\
+\}\
+}
